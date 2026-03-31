@@ -21,6 +21,6 @@ To start you need to input the following DATA:
 3. Create your own TG Bot using BOT father and Copy paste API
    - Search in TG > @BotFather
    - HTTP API copy paste into row 22
-4. You need proxy url to make it smooth (row 414)
+4. You need proxy url to make it smooth (row 420)
    - proxy_url = "http://Login:PASSWORD@IP:PORT"
    - ProxyLine Proxies > https://proxyline.net?ref=170348
