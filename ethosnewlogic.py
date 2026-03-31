@@ -25,6 +25,12 @@ TELEGRAM_ALLOWED_CHAT_ID = os.getenv("TELEGRAM_ALLOWED_CHAT_ID", "")
 ETHOS_API_BASE    = "https://api.ethos.network"
 TELEGRAM_BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
+ETHOS_USERS_BY_ADDRESSES_URL = f"{ETHOS_API_BASE}/api/v2/users/by/address"
+ETHOS_SINGLE_USER_BY_ADDRESS_URL = f"{ETHOS_API_BASE}/api/v2/user/by/address"
+
+ETHOS_BULK_MAX_ADDRESSES = 500
+ETHOS_RETRYABLE_STATUSES = {408, 429, 500, 502, 503, 504}
+
 ALCHEMY_NETWORK_URLS: Dict[str, str] = {
     "ethereum": f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
     "arbitrum": f"https://arb-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}",
@@ -1561,49 +1567,75 @@ def _restore_contract_cache(
 # ETHOS
 # =========================================================
 def check_ethos_account(client: httpx.Client, address: str) -> Dict[str, Any]:
-    url = f"{ETHOS_API_BASE}/api/v2/user/by/address/{address}"
+    url = f"{ETHOS_SINGLE_USER_BY_ADDRESS_URL}/{address}"
     result = http_request_with_retries(
-        client, "GET", url,
+        client,
+        "GET",
+        url,
         op_name=f"ethos:by_address:{address}",
         max_retries=MAX_RETRIES,
-        retry_on_statuses={408, 429, 500, 502, 503, 504},
+        retry_on_statuses=ETHOS_RETRYABLE_STATUSES,
     )
+
     if not result["ok"]:
         return {
-            "address": address, "exists": None, "status": None,
-            "username": None, "profile_url": None, "error": result.get("error"),
+            "address": address,
+            "exists": None,
+            "status": None,
+            "username": None,
+            "profile_url": None,
+            "error": result.get("error") or "request_failed",
         }
 
     resp = result["response"]
+    if resp is None:
+        return {
+            "address": address,
+            "exists": None,
+            "status": None,
+            "username": None,
+            "profile_url": None,
+            "error": "empty_response",
+        }
 
     if resp.status_code == 404:
         return {
-            "address": address, "exists": False, "status": None,
-            "username": None, "profile_url": None, "error": None,
+            "address": address,
+            "exists": False,
+            "status": None,
+            "username": None,
+            "profile_url": None,
+            "error": None,
         }
 
     if resp.status_code != 200:
         return {
-            "address": address, "exists": None, "status": None,
-            "username": None, "profile_url": None,
-            "error": f"unexpected status: {resp.status_code}",
+            "address": address,
+            "exists": None,
+            "status": None,
+            "username": None,
+            "profile_url": None,
+            "error": f"http_{resp.status_code}",
         }
 
     try:
         data = resp.json()
     except Exception as e:
         return {
-            "address": address, "exists": None, "status": None,
-            "username": None, "profile_url": None,
-            "error": f"invalid json: {e}",
+            "address": address,
+            "exists": None,
+            "status": None,
+            "username": None,
+            "profile_url": None,
+            "error": f"invalid_json: {e}",
         }
 
-    links       = data.get("links") or {}
-    username    = data.get("username")
+    links = data.get("links") or {}
+    username = data.get("username")
     profile_url = links.get("profile")
 
     if not profile_url and username:
-        profile_url = f"https://ethos.network/{username}"
+        profile_url = f"https://app.ethos.network/profile/x/{username}"
 
     return {
         "address": address,
@@ -1615,12 +1647,121 @@ def check_ethos_account(client: httpx.Client, address: str) -> Dict[str, Any]:
     }
 
 
-def check_ethos_accounts_for_addresses(
+def check_ethos_accounts_bulk(
     client: httpx.Client,
     addresses: List[str],
 ) -> List[Dict[str, Any]]:
     unique_addresses = list(dict.fromkeys([a for a in addresses if a]))
-    return [check_ethos_account(client, addr) for addr in unique_addresses]
+    if not unique_addresses:
+        return []
+
+    results_by_address: Dict[str, Dict[str, Any]] = {}
+
+    for i in range(0, len(unique_addresses), ETHOS_BULK_MAX_ADDRESSES):
+        chunk = unique_addresses[i:i + ETHOS_BULK_MAX_ADDRESSES]
+
+        result = http_request_with_retries(
+            client,
+            "POST",
+            ETHOS_USERS_BY_ADDRESSES_URL,
+            op_name=f"ethos:bulk_by_address[{len(chunk)}]",
+            max_retries=MAX_RETRIES,
+            retry_on_statuses=ETHOS_RETRYABLE_STATUSES,
+            json={"addresses": chunk},
+        )
+
+        if not result["ok"]:
+            err = result.get("error") or "bulk_request_failed"
+            for addr in chunk:
+                results_by_address[addr] = {
+                    "address": addr,
+                    "exists": None,
+                    "status": None,
+                    "username": None,
+                    "profile_url": None,
+                    "error": err,
+                }
+            continue
+
+        resp = result["response"]
+        if resp is None:
+            for addr in chunk:
+                results_by_address[addr] = {
+                    "address": addr,
+                    "exists": None,
+                    "status": None,
+                    "username": None,
+                    "profile_url": None,
+                    "error": "empty_response",
+                }
+            continue
+
+        if resp.status_code != 200:
+            for addr in chunk:
+                results_by_address[addr] = {
+                    "address": addr,
+                    "exists": None,
+                    "status": None,
+                    "username": None,
+                    "profile_url": None,
+                    "error": f"http_{resp.status_code}",
+                }
+            continue
+
+        try:
+            data = resp.json()
+        except Exception as e:
+            for addr in chunk:
+                results_by_address[addr] = {
+                    "address": addr,
+                    "exists": None,
+                    "status": None,
+                    "username": None,
+                    "profile_url": None,
+                    "error": f"invalid_json: {e}",
+                }
+            continue
+
+        if not isinstance(data, list):
+            data = []
+
+        returned_addresses: Set[str] = set()
+
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+
+            wallet_address = normalize_address(item.get("walletAddress") or item.get("address"))
+            username = item.get("username")
+            links = item.get("links") or {}
+            profile_url = links.get("profile")
+
+            if not profile_url and username:
+                profile_url = f"https://app.ethos.network/profile/x/{username}"
+
+            if wallet_address:
+                returned_addresses.add(wallet_address)
+                results_by_address[wallet_address] = {
+                    "address": wallet_address,
+                    "exists": True,
+                    "status": item.get("status"),
+                    "username": username,
+                    "profile_url": profile_url,
+                    "error": None,
+                }
+
+        for addr in chunk:
+            if addr not in returned_addresses and addr not in results_by_address:
+                results_by_address[addr] = check_ethos_account(client, addr)
+
+    return [results_by_address[addr] for addr in unique_addresses]
+
+
+def check_ethos_accounts_for_addresses(
+    client: httpx.Client,
+    addresses: List[str],
+) -> List[Dict[str, Any]]:
+    return check_ethos_accounts_bulk(client, addresses)
 
 
 def is_ethos_active(item: Dict[str, Any]) -> bool:
@@ -1645,7 +1786,9 @@ def build_final_ethos_summary(
     lines: List[str] = [msg("ethos_summary_title", lang), ""]
     lines.append(msg("main_address_line", lang, target=target))
 
-    if is_ethos_active(main_ethos):
+    if main_ethos.get("error"):
+        lines.append(f"   Ethos: ошибка проверки ({main_ethos['error']})")
+    elif is_ethos_active(main_ethos):
         lines.append(
             f"   Ethos: {main_ethos['profile_url']} | "
             f"user={main_ethos.get('username') or 'n/a'} | "
@@ -1666,7 +1809,13 @@ def build_final_ethos_summary(
                 f"{item['profile_url']}"
             )
     else:
-        lines.append(msg("no_linked_ethos", lang))
+        errored = [x for x in linked_ethos_results if x.get("error")]
+        if errored:
+            lines.append("🔴 Проверка части связанных адресов завершилась с ошибками:")
+            for item in errored[:10]:
+                lines.append(f"- {item['address']} | error={item.get('error')}")
+        else:
+            lines.append(msg("no_linked_ethos", lang))
 
     return "\n".join(lines)
 
@@ -2281,8 +2430,19 @@ def analyze_wallet(client: httpx.Client, target: str, chat_id: str) -> None:
     related_addresses = collect_related_addresses(target, all_reports)
     send_telegram_message(client, chat_id, msg("ethos_stage", lang, n=len(related_addresses)))
 
-    main_ethos = check_ethos_account(client, target)
-    linked_ethos_results = check_ethos_accounts_for_addresses(client, related_addresses)
+    ethos_all = check_ethos_accounts_bulk(client, [target] + related_addresses)
+    ethos_by_addr = {item["address"]: item for item in ethos_all}
+
+    main_ethos = ethos_by_addr.get(target) or {
+        "address": target,
+        "exists": None,
+        "status": None,
+        "username": None,
+        "profile_url": None,
+        "error": "missing_bulk_result",
+    }
+
+    linked_ethos_results = [ethos_by_addr[a] for a in related_addresses if a in ethos_by_addr]
 
     send_telegram_message(
         client, chat_id,
