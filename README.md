@@ -23,3 +23,4 @@ To start you need to input the following DATA:
    - HTTP API copy paste into row 22
 4. You need proxy url to make it smooth (row 414)
    - proxy_url = "http://Login:PASSWORD@IP:PORT"
+   - ProxyLine Proxies > https://proxyline.net?ref=170348
