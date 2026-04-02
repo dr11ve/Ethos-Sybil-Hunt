@@ -24,3 +24,14 @@ To start you need to input the following DATA:
 4. You need proxy url to make it smooth (row 420)
    - proxy_url = "http://Login:PASSWORD@IP:PORT"
    - ProxyLine Proxies > https://proxyline.net?ref=170348
+
+To clarify, the final output does not always 100% guarantee that tightly linked addresses belong to a single owner. However, in approximately 85%/90% of cases, it strongly indicates that they're controlled by the same owner. If you receive multiple wallets in the final results, I recommend checking them through Nansen AI (if you have access) or [Arkham]([url](https://intel.arkm.com/visualizer)) Intelligence to verify any connections between the wallets. This step is very helpful. In rare cases, addresses may have simply interacted with the same uncommon or low-popularity smart contracts, causing the script to flag them as linked wallets.
+That said, the script’s overall confidence is still very high, typically between 85% and 90%.
+Here are two examples below: 
+- one where the script correctly detected real farming accounts:
+  <img width="425" height="373" alt="Lensixm Sybil" src="https://github.com/user-attachments/assets/fcc5710a-92f2-411a-a32e-49353d286341" />
+- and another showing two separate wallets belonging to two different people:
+  <img width="420" height="216" alt="Need3Sleep Human" src="https://github.com/user-attachments/assets/2057cdbb-eee6-4f99-919d-c9a71a270a1c" />
+
+
+
