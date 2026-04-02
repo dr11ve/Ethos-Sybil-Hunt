@@ -40,8 +40,14 @@
 Ниже приведены два примера:
 
 A) пример, где скрипт корректно обнаружил реальные фарминг-аккаунты
+<img width="425" height="373" alt="Lensixm Sybil" src="https://github.com/user-attachments/assets/d73deb83-4482-409c-8b80-200f97c97d56" />
+
+
 
 B) и ещё один пример, где показаны два отдельных кошелька, принадлежащих двум разным людям
+<img width="420" height="216" alt="Need3Sleep Human" src="https://github.com/user-attachments/assets/c60fa8d5-d124-4eb7-a224-e76ccb3d58f7" />
+
+
 
 Arkham Visualizer > [https://intel.arkm.com/visualizer](https://intel.arkm.com/visualizer)
 
