@@ -29,11 +29,11 @@ To clarify, the final output does not always 100% guarantee that tightly linked 
 That said, the script’s overall confidence is still very high, typically between 85% and 90%.
 Here are two examples below: 
 
-A) one where the script correctly detected real farming accounts:
+A) Script correctly detected real farming accounts:
 
 <img width="425" height="373" alt="Lensixm Sybil" src="https://github.com/user-attachments/assets/fcc5710a-92f2-411a-a32e-49353d286341" />
 
-B) and another showing two separate wallets belonging to two different people:
+B) Script showing two separate wallets belonging to two different people:
 
 <img width="420" height="216" alt="Need3Sleep Human" src="https://github.com/user-attachments/assets/2057cdbb-eee6-4f99-919d-c9a71a270a1c" />
 
