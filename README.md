@@ -1,4 +1,5 @@
 This script is a Telegram bot for multi-chain EVM wallet linkage analysis. You send it a wallet address, and it scans activity on Ethereum, Arbitrum, Base, Optimism, Polygon, and BSC to find wallets that may be controlled by the same entity.
+P.S. New, upgraded script operates faster, at min it can take 2/3 minutes and at max 20 mins to scan any wallet. ethosybil.py is Upgraded version of ethosnewlogic.py
 What it can do:
 * find direct wallet-to-wallet transfers with the target
 * find wallets that use the same contract/deposit addresses
@@ -21,7 +22,7 @@ To start you need to input the following DATA:
 3. Create your own TG Bot using BOT father and Copy paste API
    - Search in TG > @BotFather
    - HTTP API copy paste into row 22
-4. You need proxy url to make it smooth (row 420)
+4. You need proxy url to make it smooth (row 322)
    - proxy_url = "http://Login:PASSWORD@IP:PORT"
    - ProxyLine Proxies > https://proxyline.net?ref=170348
 
