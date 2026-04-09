@@ -319,7 +319,7 @@ def build_http_client() -> httpx.Client:
         "Connection": "close",
     }
 
-    proxy_url = "http://zrNJkWmy:7wDumWcu@154.209.152.108:62914"
+    proxy_url = "http://Login:PASSWORD@IP:PORT"
 
     return httpx.Client(
         timeout=HTTP_TIMEOUT,
