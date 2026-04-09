@@ -16,10 +16,10 @@ import httpx
 # =========================================================
 # CONFIG
 # =========================================================
-ALCHEMY_API_KEY = os.getenv("ALCHEMY_API_KEY", "6xbS6bJv7NndeW_YOyoO7")
-ANKR_API_KEY    = os.getenv("ANKR_API_KEY",    "8d901ffb111648d8b2a913cec6d1d0551766b6288ca5ec65824014aa27331c97")
+ALCHEMY_API_KEY = os.getenv("ALCHEMY_API_KEY", "YOUR_ALCHEMY_API_KEY_INPUT_HERE")
+ANKR_API_KEY    = os.getenv("ANKR_API_KEY",    "YOUR_ANKR_API_KEY_INPUT_HERE")
 
-TELEGRAM_TOKEN           = os.getenv("TELEGRAM_TOKEN", "8676184932:AAEj5eagX91I-zdlEVSTYmcS6HyBz6PfTqM")
+TELEGRAM_TOKEN           = os.getenv("TELEGRAM_TOKEN", "INPUT_YOUR_TELEGRAM_API_TOKEN")
 TELEGRAM_ALLOWED_CHAT_ID = os.getenv("TELEGRAM_ALLOWED_CHAT_ID", "")
 
 ETHOS_API_BASE    = "https://api.ethos.network"
