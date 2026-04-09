@@ -1,7 +1,8 @@
 This script is a Telegram bot for multi-chain EVM wallet linkage analysis. You send it a wallet address, and it scans activity on Ethereum, Arbitrum, Base, Optimism, Polygon, and BSC to find wallets that may be controlled by the same entity.
 
 P.S. New, upgraded script operates faster, at min it can take 2/3 minutes and at max 20 mins to scan any wallet. ethosybil.py is Upgraded version of ethosnewlogic.py
-What it can do:
+
+What can sripct do:
 * find direct wallet-to-wallet transfers with the target
 * find wallets that use the same contract/deposit addresses
 * detect repeated and bidirectional transfer patterns
